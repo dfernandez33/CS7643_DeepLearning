@@ -53,7 +53,7 @@ class MyModel(nn.Module):
         # TODO: Implement the forward pass.
         #############################################################################
         out = self.conv_relu_conv_relu_pool(images)
-        out = self.conv_relu_conv_relu_pool(out)
+        out = self.conv_relu_conv_relu_pool(out.reshape(images.shape))
         scores = self.fully_connected(out.view(images.shape[0], -1))
         #############################################################################
         #                             END OF YOUR CODE                              #
