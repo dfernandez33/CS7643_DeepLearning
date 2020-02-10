@@ -55,6 +55,7 @@ class MyModel(nn.Module):
         out = self.conv_relu_conv_relu_pool(images)
         print(out.shape)
         print(images.shape)
+        print(out.reshape(images.shape).shape)
         out = self.conv_relu_conv_relu_pool(out.reshape(images.shape))
         scores = self.fully_connected(out.view(images.shape[0], -1))
         #############################################################################
