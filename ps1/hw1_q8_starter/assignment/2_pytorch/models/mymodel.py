@@ -88,7 +88,7 @@ class MyModel(nn.Module):
         # scores = fully_connected(out.view(images.shape[0], -1))
         out = self.conv_relu_conv_relu_pool_1(images)
         out = self.conv_relu_conv_relu_pool_N(out)
-        scores = self.fully_connected(out.view(out.shape[0]), -1)
+        scores = self.fully_connected(out.view(out.shape[0], -1))
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
