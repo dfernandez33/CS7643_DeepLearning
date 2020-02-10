@@ -72,9 +72,7 @@ class MyModel(nn.Module):
         fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size * num_convs)) *
                                     (width // (self.pool_size * num_convs)), self.num_classes)
         out = fully_connected(out.view(out.shape[0], -1))
-        print(out.shape)
         scores = self.softmax(out)
-        print(scores.shape)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
