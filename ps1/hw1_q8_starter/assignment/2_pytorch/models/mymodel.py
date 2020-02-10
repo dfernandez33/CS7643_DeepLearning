@@ -36,7 +36,7 @@ class MyModel(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=self.pool_size)
         )
-        self.softmax = nn.Softmax(dim=0)
+        #self.softmax = nn.Softmax(dim=0)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -71,8 +71,8 @@ class MyModel(nn.Module):
         height, width = images.shape[2], images.shape[3]
         fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size * num_convs)) *
                                     (width // (self.pool_size * num_convs)), self.num_classes)
-        out = fully_connected(out.view(out.shape[0], -1))
-        scores = self.softmax(out)
+        scores = fully_connected(out.view(out.shape[0], -1))
+        #scores = self.softmax(out)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
