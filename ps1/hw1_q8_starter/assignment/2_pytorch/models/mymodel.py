@@ -20,6 +20,8 @@ class MyModel(nn.Module):
         # TODO: Initialize anything you need for the forward pass
         #############################################################################
         self.pool_size = 2
+        self.num_filters = hidden_dim
+        self.num_classes = n_classes
         self.conv_relu_conv_relu_pool_1 = nn.Sequential(
             nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
             nn.ReLU(),
@@ -34,7 +36,6 @@ class MyModel(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=self.pool_size)
         )
-        self.fully_connected = nn.Linear(hidden_dim * (im_size[1] // self.pool_size) * (im_size[2] // self.pool_size), n_classes)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -60,10 +61,13 @@ class MyModel(nn.Module):
         # TODO: Implement the forward pass.
         #############################################################################
         out = self.conv_relu_conv_relu_pool_1(images)
-        print(out.shape)
-        out = self.conv_relu_conv_relu_pool_N(out)
-        print(out.shape)
-        scores = self.fully_connected(out.view(images.shape[0], -1))
+        num_convs = 1
+        for i in range(num_convs):
+            out = self.conv_relu_conv_relu_pool_N(out)
+        height, width = images.shape[2], images.shape[3]
+        fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size * num_convs)) *
+                                    (width // (self.pool_size * num_convs)), self.num_classes)
+        scores = fully_connected(out.view(out.shape[0], -1))
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
