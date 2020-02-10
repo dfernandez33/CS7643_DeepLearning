@@ -67,6 +67,7 @@ class MyModel(nn.Module):
         height, width = images.shape[2], images.shape[3]
         fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size * num_convs)) *
                                     (width // (self.pool_size * num_convs)), self.num_classes)
+        print(out.shape)
         scores = fully_connected(out.view(out.shape[0], -1))
         #############################################################################
         #                             END OF YOUR CODE                              #
