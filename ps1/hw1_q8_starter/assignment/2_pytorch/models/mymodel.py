@@ -62,9 +62,7 @@ class MyModel(nn.Module):
         #############################################################################
         out = self.conv_relu_conv_relu_pool_1(images)
         out = self.conv_relu_conv_relu_pool_N(out)
-        out = self.fully_connected(out.view(images.shape[0], -1))
-        scores = self.softmax(out)
-
+        scores = self.fully_connected(out.view(images.shape[0], -1))
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
