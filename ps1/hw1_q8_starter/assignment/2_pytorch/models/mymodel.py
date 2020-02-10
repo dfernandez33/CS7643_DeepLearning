@@ -22,10 +22,10 @@ class MyModel(nn.Module):
         self.pool_size = 2
         self.num_filters = hidden_dim
         self.num_classes = n_classes
-        self.conv_1 = nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2)
-        self.conv_N = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2)
+        self.conv = nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1)//2)
         self.ReLU = nn.ReLU(inplace=True)
         self.max_pooling = nn.MaxPool2d(kernel_size=self.pool_size)
+        self.fully_connected = nn.Linear(hidden_dim * (im_size[1] // self.pool_size) * (im_size[2] // self.pool_size), n_classes)
         # self.conv_relu_conv_relu_pool_1 = nn.Sequential(
         #     nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
         #     # nn.ReLU(),
@@ -65,17 +65,21 @@ class MyModel(nn.Module):
         #############################################################################
         # TODO: Implement the forward pass.
         #############################################################################
-        out = None
-        num_convs = 1
-        for i in range(num_convs):
-            if i == 0:
-                out = self.compute_conv_1(images)
-            else:
-                out = self.compute_conv_N(out)
-        height, width = images.shape[2], images.shape[3]
-        fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size * num_convs)) *
-                                    (width // (self.pool_size * num_convs)), self.num_classes)
-        scores = fully_connected(out.view(out.shape[0], -1))
+        # out = None
+        # num_convs = 1
+        # for i in range(num_convs):
+        #     if i == 0:
+        #         out = self.compute_conv_1(images)
+        #     else:
+        #         out = self.compute_conv_N(out)
+        # height, width = images.shape[2], images.shape[3]
+        # fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size * num_convs)) *
+        #                             (width // (self.pool_size * num_convs)), self.num_classes)
+        # scores = fully_connected(out.view(out.shape[0], -1))
+        out = self.conv(images)
+        out = self.ReLU(out)
+        out = self.max_pooling(out)
+        scores = self.fully_connected(out.view(images.shape[0], -1))
         #scores = self.softmax(out)
         #############################################################################
         #                             END OF YOUR CODE                              #
