@@ -132,10 +132,7 @@ def train(epoch):
         # This only requires a couple lines of code.
         #############################################################################
         optimizer.zero_grad()
-        predictions = model(images)
-        print(predictions.shape)
-        print(targets.shape)
-        loss = criterion(predictions, targets)
+        loss = criterion(model(images), targets)
         loss.backward()
         optimizer.step()
         #############################################################################
