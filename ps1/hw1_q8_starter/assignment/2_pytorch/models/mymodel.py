@@ -7,7 +7,7 @@ import torch.nn.functional as F
 class MyModel(nn.Module):
     def __init__(self, im_size, hidden_dim, kernel_size, n_classes):
         '''
-        Create components of a CNN classifier and initialize their weights.
+        Extra credit model
 
         Arguments:
             im_size (tuple): A tuple of ints with (channels, height, width)
@@ -23,7 +23,7 @@ class MyModel(nn.Module):
         self.conv_relu_conv_relu_pool = nn.Sequential(
             nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
             nn.ReLU(),
-            nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=self.pool_size)
         )
@@ -34,7 +34,7 @@ class MyModel(nn.Module):
 
     def forward(self, images):
         '''
-        Take a batch of images and run them through the CNN to
+        Take a batch of images and run them through the model to
         produce a score for each class.
 
         Arguments:
@@ -50,7 +50,7 @@ class MyModel(nn.Module):
         '''
         scores = None
         #############################################################################
-        # TODO: Implement the forward pass. This should take few lines of code.
+        # TODO: Implement the forward pass.
         #############################################################################
         out = self.conv_relu_conv_relu_pool(images)
         scores = self.fully_connected(out.view(images.shape[0], -1))
@@ -58,4 +58,3 @@ class MyModel(nn.Module):
         #                             END OF YOUR CODE                              #
         #############################################################################
         return scores
-
