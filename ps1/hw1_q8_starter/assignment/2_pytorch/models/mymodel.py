@@ -20,14 +20,22 @@ class MyModel(nn.Module):
         # TODO: Initialize anything you need for the forward pass
         #############################################################################
         self.pool_size = 2
-        self.conv_relu_conv_relu_pool = nn.Sequential(
+        self.conv_relu_conv_relu_pool_1 = nn.Sequential(
             nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
             nn.ReLU(),
             nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=self.pool_size)
         )
+        self.conv_relu_conv_relu_pool_N = nn.Sequential(
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+            nn.ReLU(),
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=self.pool_size)
+        )
         self.fully_connected = nn.Linear(hidden_dim * (im_size[1] // self.pool_size) * (im_size[2] // self.pool_size), n_classes)
+        self.softmax = nn.Softmax()
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -52,12 +60,11 @@ class MyModel(nn.Module):
         #############################################################################
         # TODO: Implement the forward pass.
         #############################################################################
-        out = self.conv_relu_conv_relu_pool(images)
-        print(out.shape)
-        print(images.shape)
-        print(out.reshape(images.shape).shape)
-        out = self.conv_relu_conv_relu_pool(out.reshape(images.shape))
-        scores = self.fully_connected(out.view(images.shape[0], -1))
+        out = self.conv_relu_conv_relu_pool_1(images)
+        out = self.conv_relu_conv_relu_pool_N(out)
+        out = self.fully_connected(out.view(images.shape[0], -1))
+        scores = self.softmax(out)
+
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
