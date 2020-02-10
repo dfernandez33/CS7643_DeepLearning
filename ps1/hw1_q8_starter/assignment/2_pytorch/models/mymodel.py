@@ -77,12 +77,14 @@ class MyModel(nn.Module):
         # scores = fully_connected(out.view(out.shape[0], -1))
         height, width = images.shape[2], images.shape[3]
         out = self.conv_1(images)
+        print("Shape after Conv1: " + str(out.shape))
         out = self.ReLU(out)
-        out = self.max_pooling(out)
+        # out = self.max_pooling(out)
         out = self.conv_N(out)
+        print("Shape after Conv2: " + str(out.shape))
         out = self.ReLU(out)
         out = self.max_pooling(out)
-        fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size*2)) * (width // (self.pool_size*2)), self.num_classes)
+        fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size)) * (width // (self.pool_size)), self.num_classes)
         scores = fully_connected(out.view(images.shape[0], -1))
         #scores = self.softmax(out)
         #############################################################################
