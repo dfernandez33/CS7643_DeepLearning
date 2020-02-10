@@ -22,20 +22,24 @@ class MyModel(nn.Module):
         self.pool_size = 2
         self.num_filters = hidden_dim
         self.num_classes = n_classes
-        self.conv_relu_conv_relu_pool_1 = nn.Sequential(
-            nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
-            # nn.ReLU(),
-            # nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=self.pool_size)
-        )
-        self.conv_relu_conv_relu_pool_N = nn.Sequential(
-            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
-            # nn.ReLU(),
-            # nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=self.pool_size)
-        )
+        self.conv_1 = nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2)
+        self.conv_N = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2)
+        self.ReLU = nn.ReLU(inplace=True)
+        self.max_pooling = nn.MaxPool2d(kernel_size=self.pool_size)
+        # self.conv_relu_conv_relu_pool_1 = nn.Sequential(
+        #     nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+        #     # nn.ReLU(),
+        #     # nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+        #     nn.ReLU(inplace=True),
+        #     nn.MaxPool2d(kernel_size=self.pool_size)
+        # )
+        # self.conv_relu_conv_relu_pool_N = nn.Sequential(
+        #     nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+        #     # nn.ReLU(),
+        #     # nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+        #     nn.ReLU(inplace=True),
+        #     nn.MaxPool2d(kernel_size=self.pool_size)
+        # )
         #self.softmax = nn.Softmax(dim=0)
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -65,9 +69,9 @@ class MyModel(nn.Module):
         num_convs = 1
         for i in range(num_convs):
             if i == 0:
-                out = self.conv_relu_conv_relu_pool_1(images)
+                out = self.compute_conv_1(images)
             else:
-                out = self.conv_relu_conv_relu_pool_N(out)
+                out = self.compute_conv_N(out)
         height, width = images.shape[2], images.shape[3]
         fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size * num_convs)) *
                                     (width // (self.pool_size * num_convs)), self.num_classes)
@@ -77,3 +81,13 @@ class MyModel(nn.Module):
         #                             END OF YOUR CODE                              #
         #############################################################################
         return scores
+
+    def compute_conv_1(self, images):
+        out = self.conv_1(images)
+        out = self.ReLU(out)
+        return self.max_pooling(out)
+
+    def compute_conv_N(self, params):
+        out = self.conv_N(params)
+        out = self.ReLU(out)
+        return self.max_pooling(out)
