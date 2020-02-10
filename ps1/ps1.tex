@@ -1,0 +1,394 @@
+\documentclass[11pt,english]{article}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\listfiles
+
+% paper size & margins
+\usepackage{fullpage}
+\usepackage[showframe=false,margin=1in]{geometry}
+\parindent=0pt
+
+% font management
+\usepackage{relsize}
+\usepackage[T1]{fontenc} % for properly hyphenating words with accented chars
+\usepackage[latin1]{inputenc}
+\usepackage{babel}
+
+% figure management
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{subfig}
+%\usepackage{subfigure}
+\usepackage[belowskip=0pt,aboveskip=0pt,font=small]{caption}
+%\usepackage{subcaption}
+\setlength{\intextsep}{7pt plus 0pt minus 0pt}
+
+% math
+\usepackage{amsmath, amsthm, amssymb}
+%\usepackage{amstext}
+\usepackage{textcomp}
+\usepackage{stmaryrd}
+\usepackage{upgreek}
+\usepackage{bm}
+\usepackage{cases}
+
+% assorted
+\usepackage{url}
+\usepackage{breakurl}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{xspace}
+\usepackage{comment}
+\usepackage{color}
+\usepackage{afterpage}
+\usepackage[normalem]{ulem}
+\usepackage{enumitem}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shortcuts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{mysymbols}
+\input{math_definition.tex}
+\newcommand{\hide}[1]{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title / Author
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\title{CS7643: Deep Learning\\
+Spring 2020 \\
+Problem Set 1}
+\author{Instructor: Zsolt Kira \\
+  TAs: Yihao Chen, Sameer Dharur, Rahul Duggal, Patrick Grady, Harish Kamath \\
+  Yinquan Lu, Anishi Mehta, Manas Sahni, Jiachen Yang, Zhuoran Yu \\
+Discussions: \url{https://piazza.com/gatech/spring2020/cs4803dl7643a/home}}
+\date{Due: Tuesday, February 11, 11:55pm}
+
+\maketitle
+
+
+\paragraph*{Instructions}
+\begin{enumerate}
+\item We will be using Gradescope to collect your assignments.  Please read the following instructions for submitting to Gradescope carefully!
+     \begin{itemize}
+          % \item
+               % This assignment has 10 total problems/sub-problems. Questions 1-7 are theory questions, while 8-10 are programming
+               % questions. 
+          \item
+               Each subproblem must be submitted on a separate page. When submitting to Gradescope, make sure to mark which page(s) corresponds to each problem/sub-problem. For instance, Q5 has 5 subproblems, and the solution to each 
+               must start on a new page. Similarly, Q8 has 8 subproblems, and the writeup for each should start on a new page.
+          \item
+               For the coding problems (Q8), 
+               please use the provided \texttt{collect\_submission.sh} script and upload \texttt{hw1.zip}
+               to the HW1 Code assignment on Gradescope.  While we will not be explicitly grading your code,
+               you are still required to submit it. Please make sure you have saved the most recent version of your jupyter notebook before running this script.
+               Further, append the writeup for each Q8 subproblem to your PS1 solution PDF.
+          \item
+               Note: This is a large class and Gradescope's assignment segmentation features are essential.
+               Failure to follow these instructions may result in parts of your assignment not being graded.
+               We will not entertain regrading requests for failure to follow instructions.
+
+               % Please read \url{https://stats200.stanford.edu/gradescope_tips.pdf} for additional information on submitting to Gradescope.
+     \end{itemize}
+
+\item
+     \LaTeX'd  solutions are strongly encouraged (solution template
+     available at \\
+     \href{https://www.cc.gatech.edu/classes/AY2020/cs7643_fall/assets/sol1.tex}
+     {cc.gatech.edu/classes/AY2020/cs7643\_fall/assets/sol1.tex}),
+     but scanned handwritten copies are acceptable.
+     Hard copies are \textbf{not} accepted.
+
+
+\item We generally encourage you to collaborate with other students.
+
+You may talk to a friend,
+discuss the questions and potential directions for solving them. However, you need to write
+your own solutions and code separately, and \emph{not} as a group activity.
+Please list the students you collaborated with. \\ \\
+% \textbf{Exception: HW0 is meant to serve as a background preparation test. You must NOT collaborate on HW0.}
+
+%\item For the implementation questions, make sure your code is bug-free, working out of the box and that you submitted all main and helper functions.
+%\item If plots are required, you must include them in your report and your code must produce them as an output. Points will be deducted for not following this protocol.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Body
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Gradient Descent}
+
+\begin{enumerate}[start]
+
+\item (3 points)
+We often use iterative optimization algorithms such as Gradient Descent to
+find $\mathbf{w}$ that minimizes a loss function $f(\mathbf{w})$. Recall that in gradient descent,
+we start with an initial value of $\mathbf{w}$ (say $\mathbf{w}^{(1)}$) and iteratively take a step in the direction
+of the negative of the gradient of the objective function \ie
+%
+\begin{equation}
+\mathbf{w}^{(t+1)} = \mathbf{w}^{(t)} - \eta\nabla f(\mathbf{w}^{(t)})
+\end{equation}
+%
+for learning rate $\eta > 0$.
+
+In this question, we will develop a slightly deeper understanding of this update rule, in particular for 
+minimizing a convex function $f(\mathbf{w})$. Note: this analysis will not directly carry over to training neural networks 
+since loss functions for training neural networks are typically not convex, but this will (a) develop intuition 
+and (b) provide a starting point for research in non-convex optimization (which is beyond the scope of this class). 
+
+
+Recall the first-order Taylor approximation of $f$ at $\mathbf{w}^{(t)}$:
+%
+\begin{align}
+f(\mathbf{w}) \approx f(\mathbf{w}^{(t)}) + \langle \mathbf{w}-\mathbf{w}^{(t)},
+\nabla f(\mathbf{w}^{(t)}) \rangle
+\end{align}
+%
+When $f$ is convex, this approximation forms a lower bound of $f$, \ie 
+\begin{align}
+f(\mathbf{w}) \ge 
+\underbrace{
+f(\mathbf{w}^{(t)}) + \langle \mathbf{w}-\mathbf{w}^{(t)}, 
+\nabla f(\mathbf{w}^{(t)}) \rangle
+}_{\text{affine lower bound to $f(\cdot)$}}
+ \quad \forall \mathbf{w}
+\end{align}
+%
+
+Since this approximation
+is a `simpler' function than $f(\cdot)$, we could consider minimizing the approximation instead of $f(\cdot)$.
+Two immediate problems: (1) the approximation is affine (thus unbounded from below) and
+(2) the approximation is faithful for $\mathbf{w}$ close to $\mathbf{w}^{(t)}$.
+To solve both problems, we add a squared $\ell_2$ \emph{proximity term} to the approximation minimization:
+%
+\begin{equation}
+\argmin_\mathbf{w}
+\underbrace{
+f(\mathbf{w}^{(t)}) + \langle \mathbf{w}-\mathbf{w}^{(t)}, \nabla f(\mathbf{w}^{(t)}) \rangle
+}_{\text{affine lower bound to $f(\cdot)$}}
++
+\underbrace{
+\frac{\lambda}{2}
+}_{\text{trade-off}}
+\underbrace{
+\norm{\mathbf{w} - \mathbf{w}^{(t)}}^2
+}_{\text{proximity term}}
+\end{equation}
+%
+
+Notice that the optimization problem above is an unconstrained quadratic programming problem,
+meaning that it can be solved in closed form (hint: gradients).
+
+What is the solution $\mathbf{w}^*$ of the above optimization?
+What does that tell you about the gradient descent update rule?
+What is the relationship between $\lambda$ and $\eta$?
+%What is the update step corresponding to the above optimization?
+
+\item (3 points) Let's prove a lemma that will initially seem devoid of the rest of the analysis but will come 
+in handy in the next sub-question when we start combining things. 
+Specifically, the analysis in this sub-question holds for any $\mathbf{w}^{\star}$, but in the next sub-question  
+we will use it for $\mathbf{w}^{\star}$ that minimizes $f(\mathbf{w})$. 
+
+%Show that for
+Consider a sequence of vectors $\mathbf{v}_1, \mathbf{v}_2, ..., \mathbf{v}_T$, 
+and an update equation of the form $\mathbf{w}^{(t+1)} = \mathbf{w}^{(t)} - \eta\mathbf{v}_{t}$ 
+with $\mathbf{w}^{(1)} = 0$. 
+Show that: 
+
+\begin{equation}
+\sum_{t=1}^T \langle \mathbf{w}^{(t)}-\mathbf{w}^{\star}, \mathbf{v}_t \rangle \leq
+\frac{\norm{\mathbf{w}^{\star}}^2}{2\eta} + \frac{\eta}{2} \sum_{t=1}^T \norm{\mathbf{v}_t}^2
+\end{equation}
+
+\item (3 points) Now let's start putting things together and analyze the convergence rate of gradient descent \ie
+how fast it converges to $\mathbf{w}^\star$.
+
+
+First, show that for $\mathbf{\bar w} = \frac{1}{T} \sum_{t=1}^T \mathbf{w}^{(t)}$
+% the upper bound for $f(\mathbf{\bar w}) - f(\mathbf{w}^\star)$,
+% is given by
+
+\begin{equation}
+f(\mathbf{\bar w}) - f(\mathbf{w}^\star) \leq \frac{1}{T} \sum_{t=1}^T
+\langle \mathbf{w}^{(t)}-\mathbf{w}^{\star}, \nabla f(\mathbf{w}^{(t)}) \rangle
+\end{equation}
+
+Next, use the result from part $2$, with upper bounds $B$ and $\rho$ for
+$\norm{\mathbf{w}^\star}$ and $\norm{\nabla f(\mathbf{w}^{(t)})}$
+respectively and show that for fixed $\eta = \sqrt{\frac{B^2}{\rho^2T}}$,
+the convergence rate of gradient descent is $\mathcal{O}(1/\sqrt{T})$
+\ie the upper bound for $f(\mathbf{\bar w}) - f(\mathbf{w}^\star)$
+$\propto$ $\frac{1}{\sqrt{T}}$.
+
+%\item (2 points)
+%In some cases, such as when number of data samples is large,
+%computing the full gradient per iteration is infeasible, and
+%we instead rely on \textbf{stochastic gradient descent} (SGD).
+%SGD uses a small portion of data to compute an approximate gradient.
+%
+%Given observed quantities $A \in \mathbb{R}^{M \times N}$ and $b \in \mathbb{R}^M$,
+%show that for the least squares problem
+%
+%\begin{equation}
+%\mathop{\mathrm{min}}_{\mathbf{w} \in \mathbb{R}^N} f(\mathbf{w}) = \frac{1}{2M} \norm{A\mathbf{w} - b}^2
+%\end{equation}
+%
+%where $M$ could be arbitrarily large, the expectation of the gradient in SGD
+%equals the actual gradient.
+%
+\item (2 points)
+Consider an objective function $f(w) := f_1(w) + f_2(w)$ comprised of $N=2$ terms:
+%For $n = 2$, consider
+
+% \begin{equation}
+% f(w) = \frac{1}{2} (w-2)^2 + \frac{1}{2}(w+1)^2
+% \end{equation}
+
+\begin{equation}
+  % f(w) = -\ln \left( 1 - \frac{1}{1 + \exp(-w)} \right) - \ln \left( \frac{1}{1 + \exp(-w)} \right)
+  f_1(w) = -\ln \left( 1 - \frac{1}{1 + \exp(-w)} \right) \quad \text{ and } \quad
+  f_2(w) = - \ln \left( \frac{1}{1 + \exp(-w)} \right)
+\end{equation}
+
+Now consider using SGD (with a batch-size $B=1$) to minimize $f(w)$. Specifically, in each iteration,
+we will pick one of the two terms (uniformly at random), and take a step in the direction of the negative gradient, with a constant
+step-size of $\eta$.
+%If we sample one data point every iteration,
+%does SGD guarantee to decrease
+You can assume $\eta$ is small enough that every update does result in improvement (aka descent) on the sampled term.
+Is SGD guaranteed to decrease the overall loss function in every iteration? If yes, provide a proof. If no, provide a counter-example.
+
+\end{enumerate}
+
+\section{Automatic Differentiation}
+\begin{enumerate}[resume]
+
+\item (4 points)
+In practice, writing the closed-form expression of the derivative of
+a loss function $f$ w.r.t. the parameters of a deep neural network is hard
+(and mostly unnecessary) as $f$ becomes complex. Instead, we define
+computation graphs and use the automatic differentiation algorithms (typically backpropagation) to compute
+gradients using the chain rule. For example, consider the expression
+
+\begin{equation}
+f(x, y) = (x+y)(y+1)
+\end{equation}
+
+Let's define intermediate variables $a$ and $b$ such that
+
+\begin{equation}
+a = x + y
+\end{equation}
+%
+\begin{equation}
+b = y + 1
+\end{equation}
+%
+\begin{equation}
+f = a \times b
+\end{equation}
+
+A computation graph for the ``forward pass'' through $f$ is shown in \figref{fig:sample_graph}. 
+
+\begin{figure}[h]
+  \centering
+    \includegraphics[width=0.5\textwidth]{sample_graph.png}
+    \caption{}
+    \label{fig:sample_graph}
+\end{figure}
+
+We can then work backwards and compute the derivative of $f$ w.r.t. each
+intermediate variable ($\frac{\del f}{\del a}$ and $\frac{\del f}{\del b}$) and
+chain them together to get $\frac{\del f}{\del x}$ and $\frac{\del f}{\del y}$. \\
+
+Let $\sigma(\cdot)$ denote the standard sigmoid function. Now, for the following vector function:
+
+\begin{align}
+f_1(w_1, w_2) &= e^{e^{w_1} + e^{2w_2}} + \sigma(e^{w_1} + e^{2w_2}) \\
+f_2(w_1, w_2) &= w_1w_2 + \max(w_1, w_2)
+\end{align}
+
+\begin{enumerate}
+\item Draw the computation graph. Compute the value of $f$ at $\vec{w} = (1, -1)$.
+\item At this $\vec{w}$, compute the Jacobian $\frac{\del \vec{f}} {\del \vec{w}}$ using numerical differentiation (using $\Delta w$ = 0.01).
+\item At this $\vec{w}$, compute the Jacobian using forward mode auto-differentiation.
+\item At this $\vec{w}$, compute the Jacobian using backward mode auto-differentiation.
+\item Don't you love that software exists to do this for us?
+% making use of intermediate variables and reusing
+%nodes (caching results) where necessary. Then apply the chain rule and compute
+%$\frac{\del f}{\del w}$.
+\end{enumerate}
+
+\end{enumerate}
+
+% \section{Directed Acyclic Graphs (DAG)}
+
+% One important property for feed-forward network that we have discussed in class is that it must be a directed acyclic graph (DAG). Recall that a \emph{DAG is a directed graph that contains no directed cycles}. We will study some of its properties in this question.
+
+% Define $G=(V, E)$ in which $V$ is the set of all nodes as $\{v_1, v_2, ..., v_i, ... v_n\}$ and $E$ is the set of 
+% edges $E = \big\{e_{i,j} = (v_i, v_j) \mid v_i, v_j \in V \big\}$.
+
+% A \emph{topological order of a directed graph} $G=(V, E)$ is an ordering of its nodes as $\{v_1, v_2, ..., v_i, ... v_n\}$ so that for every edge $(v_i, v_j)$ we have $i < j$.
+
+% There are several lemmas can be inferred from the definition of DAG. One lemma is: if $G$ is a DAG, then $G$ has a node with no incoming edges.   
+
+% Given the above lemma, prove the following two lemmas: 
+
+% \begin{enumerate}[resume]
+% \item 
+% (2 points)
+% If the graph $G$ is a DAG, then $G$ has a topological ordering.
+
+% \item 
+% (2 points) If the graph $G$ has a topological order, then $G$ is a DAG. 
+% \end{enumerate}
+
+\section{Paper Review}
+
+The first of our paper reviews for this course comes from a much acclaimed spotlight presentation at NeurIPS 2019 on the topic `Weight Agnostic Neural Networks' by Adam Gaier and David Ha from Google Brain. 
+
+The paper presents a very interesting proposition that, through a series of experiments, re-examines some fundamental notions about neural networks - in particular, the comparative importance of architectures and weights in a network's predictive performance. 
+
+The paper can be viewed \href{https://arxiv.org/abs/1906.04358}{here}.
+The authors have also written a \href{https://weightagnostic.github.io/}{blog post} with intuitive visualizations to help understand its key concepts better. 
+
+\textbf{Guidelines}: Please restrict your reviews to no more than 350 words. The evaluation rubric for this section is as follows :
+\begin{enumerate}[resume]
+\item (2 points) What is the main contribution of this paper? Briefly summarize its key insights, strengths and weaknesses.
+
+\item (2 points) What is your personal takeaway from this paper? This could be expressed either in terms of relating the approaches adopted in this paper to your traditional understanding of learning parameterized models, or potential future directions of research in the area which the authors haven't addressed, or anything else that struck you as being noteworthy. 
+\end{enumerate}
+
+
+\section{Implement and train a network on CIFAR-10}
+
+\textbf{Setup Instructions}: Before attempting this question, look at setup instructions at 
+\href{https://www.cc.gatech.edu/classes/AY2020/cs7643_spring/Z3o9P26CwTPZZMDXyWYDj3/hw1-q8-setup/}{here}.
+\begin{enumerate}[resume]
+% \item (Upto 5 points) Implement a Softmax classifier (from scratch, no ML libraries allowed), and train
+% it (via SGD) on CIFAR-10:
+% \href{https://www.cc.gatech.edu/classes/AY2020/cs7643_fall/hw0/}{https://www.cc.gatech.edu/classes/AY2020/cs7643\_fall/hw1-q8/}.
+% In your solutions, please include the output of cell 3 in the jupyter notebook (the cell with grad\_check\_sparse), the plot of the training loss, and, the weight visualizations with a brief comment on how well the weight visualizations correspond with their respective classes as the answer to this problem.
+
+\item (Upto 29 points)
+Now, we will learn how to implement a softmax classifier, vanilla neural networks (or Multi-Layer Perceptrons), and ConvNets.   
+You will begin by writing the forward and backward
+passes for different types of layers (including convolution and pooling),
+and then go on to train a shallow ConvNet on the CIFAR-10 dataset in Python.   
+Next you will learn to use PyTorch, a popular open-source deep learning framework,
+and use it to replicate the experiments from before.
+
+Follow the instructions provided 
+\href{https://www.cc.gatech.edu/classes/AY2020/cs7643_spring/Z3o9P26CwTPZZMDXyWYDj3/hw1-q8/}{here}
+\end{enumerate}
+
+
+% \item (Upto 5 points) Implement a Softmax classifier (from scratch, no ML libraries allowed), and train
+% it (via SGD) on CIFAR-10:
+% \href{https://www.cc.gatech.edu/classes/AY2020/cs7643_fall/hw0/}{https://www.cc.gatech.edu/classes/AY2020/cs7643\_fall/hw1-q8/}.
+% In your solutions, please include the output of cell 3 in the jupyter notebook (the cell with grad\_check\_sparse), the plot of the training loss, and, the weight visualizations with a brief comment on how well the weight visualizations correspond with their respective classes as the answer to this problem.
+
+\end{document}
