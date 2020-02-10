@@ -60,14 +60,16 @@ class MyModel(nn.Module):
         #############################################################################
         # TODO: Implement the forward pass.
         #############################################################################
-        out = self.conv_relu_conv_relu_pool_1(images)
-        num_convs = 1
+        out = None
+        num_convs = 2
         for i in range(num_convs):
-            out = self.conv_relu_conv_relu_pool_N(out)
+            if i == 0:
+                out = self.conv_relu_conv_relu_pool_1(images)
+            else:
+                out = self.conv_relu_conv_relu_pool_N(out)
         height, width = images.shape[2], images.shape[3]
         fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size * num_convs)) *
                                     (width // (self.pool_size * num_convs)), self.num_classes)
-        print(out.shape)
         scores = fully_connected(out.view(out.shape[0], -1))
         #############################################################################
         #                             END OF YOUR CODE                              #
