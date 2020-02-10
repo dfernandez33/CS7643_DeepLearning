@@ -64,7 +64,6 @@ class MyModel(nn.Module):
         out = None
         num_convs = 2
         for i in range(num_convs):
-            print(i)
             if i == 0:
                 out = self.conv_relu_conv_relu_pool_1(images)
             else:
