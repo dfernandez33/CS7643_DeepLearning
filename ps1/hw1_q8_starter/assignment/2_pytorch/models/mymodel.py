@@ -35,7 +35,6 @@ class MyModel(nn.Module):
             nn.MaxPool2d(kernel_size=self.pool_size)
         )
         self.fully_connected = nn.Linear(hidden_dim * (im_size[1] // self.pool_size) * (im_size[2] // self.pool_size), n_classes)
-        self.softmax = nn.Softmax()
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -61,7 +60,9 @@ class MyModel(nn.Module):
         # TODO: Implement the forward pass.
         #############################################################################
         out = self.conv_relu_conv_relu_pool_1(images)
+        print(out.shape)
         out = self.conv_relu_conv_relu_pool_N(out)
+        print(out.shape)
         scores = self.fully_connected(out.view(images.shape[0], -1))
         #############################################################################
         #                             END OF YOUR CODE                              #
