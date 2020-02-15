@@ -23,26 +23,42 @@ class MyModel(nn.Module):
         self.height, self.width = im_size[1], im_size[2]
         self.num_filters = hidden_dim
         self.num_classes = n_classes
-        # self.conv_1 = nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1)//2)
-        # self.conv_N = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1)//2)
-        # self.ReLU = nn.ReLU(inplace=True)
-        # self.max_pooling = nn.MaxPool2d(kernel_size=self.pool_size)
-        self.conv_relu_conv_relu_pool_1 = nn.Sequential(
-            nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+        padding_size = (kernel_size - 1) // 2
+        self.conv_relu_x4_pool_1 = nn.Sequential(
+            nn.Conv2d(im_size[0], hidden_dim, kernel_size=kernel_size, stride=1, padding=padding_size),
             nn.ReLU(inplace=True),
-            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+            nn.Dropout(.05),
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=padding_size),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=self.pool_size)
         )
-        self.conv_relu_conv_relu_pool_N = nn.Sequential(
-            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+        self.conv_relu_x4_pool_2 = nn.Sequential(
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=padding_size),
             nn.ReLU(inplace=True),
-            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=(kernel_size - 1) // 2),
+            nn.Dropout(.05),
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=padding_size),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=self.pool_size)
         )
-        self.fully_connected = nn.Linear(self.num_filters * (self.height // (self.pool_size*2))
-                                         * (self.width // (self.pool_size*2)), self.num_classes)
+        self.conv_relu_x4_pool_3 = nn.Sequential(
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=padding_size),
+            nn.ReLU(inplace=True),
+            nn.Dropout(.05),
+            nn.Conv2d(hidden_dim, hidden_dim, kernel_size=kernel_size, stride=1, padding=padding_size),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=self.pool_size)
+        )
+        flattened_conv_size = self.num_filters * (self.height // (self.pool_size**3)) * (self.width // (self.pool_size**3))
+        self.fully_connected_block = nn.Sequential(
+            nn.Linear(flattened_conv_size, flattened_conv_size),
+            nn.Linear(flattened_conv_size, flattened_conv_size),
+            nn.Linear(flattened_conv_size, n_classes)
+        )
+        self.conv_block = nn.Sequential(
+            self.conv_relu_x4_pool_1,
+            self.conv_relu_x4_pool_2,
+            self.conv_relu_x4_pool_3
+        )
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
@@ -67,39 +83,10 @@ class MyModel(nn.Module):
         #############################################################################
         # TODO: Implement the forward pass.
         #############################################################################
-        # out = None
-        # num_convs = 1
-        # for i in range(num_convs):
-        #     if i == 0:
-        #         out = self.compute_conv_1(images)
-        #     else:
-        #         out = self.compute_conv_N(out)
-        # fully_connected = nn.Linear(self.num_filters * (height // (self.pool_size * num_convs)) *
-        #                             (width // (self.pool_size * num_convs)), self.num_classes)
-        # scores = fully_connected(out.view(out.shape[0], -1))
-        # height, width = images.shape[2], images.shape[3]
-        # out = self.conv_1(images)
-        # out = self.ReLU(out)
-        # # out = self.max_pooling(out)
-        # out = self.conv_N(out)
-        # out = self.ReLU(out)
-        # out = self.max_pooling(out)
-        # fully_connected = nn.Linear(self.num_filters * (height // self.pool_size) * (width // self.pool_size), self.num_classes)
-        # scores = fully_connected(out.view(images.shape[0], -1))
-        out = self.conv_relu_conv_relu_pool_1(images)
-        out = self.conv_relu_conv_relu_pool_N(out)
-        scores = self.fully_connected(out.view(out.shape[0], -1))
+        out = self.conv_block(images)
+        flattened_out = out.view(out.shape[0], -1)  # flatten output before first fc layer
+        scores = self.fully_connected_block(flattened_out)
         #############################################################################
         #                             END OF YOUR CODE                              #
         #############################################################################
         return scores
-
-    # def compute_conv_1(self, images):
-    #     out = self.conv_1(images)
-    #     out = self.ReLU(out)
-    #     return self.max_pooling(out)
-    #
-    # def compute_conv_N(self, params):
-    #     out = self.conv_N(params)
-    #     out = self.ReLU(out)
-    #     return self.max_pooling(out)

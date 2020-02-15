@@ -95,8 +95,7 @@ elif args.model == 'convnet':
     model = models.convnet.CNN(im_size, args.hidden_dim, args.kernel_size,
                                n_classes)
 elif args.model == 'mymodel':
-    model = models.mymodel.MyModel(im_size, args.hidden_dim,
-                               args.kernel_size, n_classes)
+    model = models.mymodel.MyModel(im_size, args.hidden_dim, args.kernel_size, n_classes)
 else:
     raise Exception('Unknown model {}'.format(args.model))
 # cross-entropy loss function
@@ -144,9 +143,9 @@ def train(epoch):
             examples_this_epoch = batch_idx * len(images)
             epoch_progress = 100. * batch_idx / len(train_loader)
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\t'
-                  'Train Loss: {:.6f}\tVal Loss: {:.6f}\tVal Acc: {}'.format(
+                  'Train Loss: {:.6f}\tVal Loss: {:.6f}\tVal Acc: {}\tlr: {}'.format(
                 epoch, examples_this_epoch, len(train_loader.dataset),
-                epoch_progress, train_loss, val_loss, val_acc))
+                epoch_progress, train_loss, val_loss, val_acc, optimizer.param_groups[0]['lr']))
 
 def evaluate(split, verbose=False, n_batches=None):
     '''
@@ -183,12 +182,13 @@ def evaluate(split, verbose=False, n_batches=None):
 
 
 # train the model one epoch at a time
+scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=25, gamma=0.95)
 for epoch in range(1, args.epochs + 1):
     train(epoch)
+    scheduler.step()
 evaluate('test', verbose=True)
 
 # Save the model (architecture and weights)
 torch.save(model, args.model + '.pt')
 # Later you can call torch.load(file) to re-load the trained model into python
 # See http://pytorch.org/docs/master/notes/serialization.html for more details
-
